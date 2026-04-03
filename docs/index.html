@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RetireViz — 退休指數投資組合視覺化工具</title>
+  <meta name="description" content="比較不同指數投資組合在歷史金融危機中的表現，評估退休提領策略的安全性。">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/themes.css">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-left">
+      <h1 class="logo">RetireViz</h1>
+      <span class="logo-subtitle">退休投資組合分析</span>
+    </div>
+    <div class="header-right">
+      <button id="theme-toggle" class="btn-icon" title="切換主題">
+        <span class="icon-sun">☀️</span>
+        <span class="icon-moon">🌙</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Step Navigation -->
+  <nav class="step-nav">
+    <button class="step-btn active" data-step="1">
+      <span class="step-num">1</span>
+      <span class="step-label">投資組合</span>
+    </button>
+    <button class="step-btn" data-step="2">
+      <span class="step-num">2</span>
+      <span class="step-label">退休參數</span>
+    </button>
+    <button class="step-btn" data-step="3">
+      <span class="step-num">3</span>
+      <span class="step-label">危機情境</span>
+    </button>
+    <button class="step-btn" data-step="4">
+      <span class="step-num">4</span>
+      <span class="step-label">結果分析</span>
+    </button>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Step 1: Portfolio Builder -->
+    <section id="step-1" class="step-panel active">
+      <h2 class="section-title">建立投資組合</h2>
+
+      <!-- Preset Templates -->
+      <div class="preset-section">
+        <h3 class="subsection-title">快速範本</h3>
+        <div class="preset-grid" id="preset-grid">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- Index Selection -->
+      <div class="index-section">
+        <h3 class="subsection-title">選擇指數 & 配置權重</h3>
+
+        <!-- Portfolio Tabs -->
+        <div class="portfolio-tabs">
+          <div class="portfolio-tab-bar" id="portfolio-tab-bar">
+            <button class="portfolio-tab active" data-portfolio="0">組合 1</button>
+          </div>
+          <button class="btn-sm btn-add-portfolio" id="add-portfolio-btn">+ 新增組合</button>
+        </div>
+
+        <!-- Portfolio Content -->
+        <div id="portfolio-content">
+          <!-- US Stocks -->
+          <div class="index-group">
+            <h4 class="group-title">🇺🇸 美股</h4>
+            <div class="index-list" id="us-indices">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+          <!-- Taiwan Stocks -->
+          <div class="index-group">
+            <h4 class="group-title">🇹🇼 台股</h4>
+            <div class="index-list" id="tw-indices">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+          <!-- Bonds -->
+          <div class="index-group">
+            <h4 class="group-title">🏦 債券</h4>
+            <div class="index-list" id="bond-indices">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+          <!-- Others -->
+          <div class="index-group">
+            <h4 class="group-title">🏠 其他</h4>
+            <div class="index-list" id="other-indices">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Weight Summary -->
+        <div class="weight-summary" id="weight-summary">
+          <div class="weight-bar-container">
+            <div class="weight-bar" id="weight-bar"></div>
+          </div>
+          <span class="weight-total" id="weight-total">總權重: 0%</span>
+        </div>
+
+        <!-- Allocation Pie Chart -->
+        <div class="chart-container-sm" id="allocation-chart"></div>
+      </div>
+
+      <div class="step-actions">
+        <button class="btn btn-primary btn-next" data-next="2">下一步：退休參數 →</button>
+      </div>
+    </section>
+
+    <!-- Step 2: Retirement Parameters -->
+    <section id="step-2" class="step-panel">
+      <h2 class="section-title">設定退休參數</h2>
+
+      <div class="param-grid">
+        <div class="param-card">
+          <label class="param-label" for="initial-amount">退休金總額 (萬)</label>
+          <div class="param-input-group">
+            <input type="number" id="initial-amount" class="param-input" value="1000" min="1" step="100">
+            <span class="param-unit">萬元</span>
+          </div>
+          <input type="range" id="initial-amount-slider" class="param-slider" min="100" max="10000" step="100" value="1000">
+        </div>
+
+        <div class="param-card">
+          <label class="param-label" for="withdrawal-rate">每月提領金額 (萬)</label>
+          <div class="param-input-group">
+            <input type="number" id="withdrawal-amount" class="param-input" value="5" min="0" step="0.5">
+            <span class="param-unit">萬元/月</span>
+          </div>
+          <div class="param-alt">
+            <span>或提領率</span>
+            <input type="number" id="withdrawal-rate" class="param-input-sm" value="4" min="0" max="20" step="0.5">
+            <span>%/年</span>
+          </div>
+        </div>
+
+        <div class="param-card">
+          <label class="param-label" for="invest-years">投資年限</label>
+          <div class="param-input-group">
+            <input type="number" id="invest-years" class="param-input" value="30" min="1" max="50" step="1">
+            <span class="param-unit">年</span>
+          </div>
+          <input type="range" id="invest-years-slider" class="param-slider" min="5" max="50" step="1" value="30">
+        </div>
+
+        <div class="param-card">
+          <label class="param-label">再平衡頻率</label>
+          <div class="param-radio-group">
+            <label class="radio-label"><input type="radio" name="rebalance" value="none"> 不再平衡</label>
+            <label class="radio-label"><input type="radio" name="rebalance" value="yearly" checked> 每年</label>
+            <label class="radio-label"><input type="radio" name="rebalance" value="quarterly"> 每季</label>
+            <label class="radio-label"><input type="radio" name="rebalance" value="monthly"> 每月</label>
+          </div>
+        </div>
+
+        <div class="param-card">
+          <label class="param-label">進階選項</label>
+          <div class="param-checkbox-group">
+            <label class="checkbox-label">
+              <input type="checkbox" id="inflation-adjust" checked>
+              通膨調整提領 (每年 +2%)
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="tax-enable">
+              計算稅後報酬
+            </label>
+          </div>
+          <div class="tax-options" id="tax-options" style="display:none;">
+            <label class="param-label-sm">稅制</label>
+            <select id="tax-regime" class="param-select">
+              <option value="tw">台灣 (海外所得 670 萬免稅)</option>
+              <option value="us">美國 (15% 資本利得稅)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="step-actions">
+        <button class="btn btn-secondary btn-prev" data-prev="1">← 上一步</button>
+        <button class="btn btn-primary btn-next" data-next="3">下一步：危機情境 →</button>
+      </div>
+    </section>
+
+    <!-- Step 3: Crisis Scenarios -->
+    <section id="step-3" class="step-panel">
+      <h2 class="section-title">選擇危機情境</h2>
+
+      <div class="crisis-controls">
+        <button class="btn btn-sm" id="select-all-crises">全選</button>
+        <button class="btn btn-sm" id="deselect-all-crises">取消全選</button>
+      </div>
+
+      <div class="crisis-grid" id="crisis-grid">
+        <!-- Populated by JS -->
+      </div>
+
+      <!-- Custom Scenario -->
+      <div class="custom-crisis">
+        <h3 class="subsection-title">自訂壓力測試</h3>
+        <div class="custom-crisis-form">
+          <div class="param-card">
+            <label class="param-label" for="custom-drop">下跌幅度</label>
+            <div class="param-input-group">
+              <input type="number" id="custom-drop" class="param-input" value="-40" min="-90" max="0" step="5">
+              <span class="param-unit">%</span>
+            </div>
+          </div>
+          <div class="param-card">
+            <label class="param-label" for="custom-recovery">恢復時間</label>
+            <div class="param-input-group">
+              <input type="number" id="custom-recovery" class="param-input" value="24" min="1" max="120" step="1">
+              <span class="param-unit">個月</span>
+            </div>
+          </div>
+          <button class="btn btn-sm btn-add-crisis" id="add-custom-crisis">+ 加入自訂情境</button>
+        </div>
+      </div>
+
+      <div class="step-actions">
+        <button class="btn btn-secondary btn-prev" data-prev="2">← 上一步</button>
+        <button class="btn btn-primary btn-next btn-run" data-next="4" id="run-simulation">開始模擬 🚀</button>
+      </div>
+    </section>
+
+    <!-- Step 4: Results Dashboard -->
+    <section id="step-4" class="step-panel">
+      <h2 class="section-title">結果分析</h2>
+
+      <!-- Summary Cards -->
+      <div class="summary-cards" id="summary-cards">
+        <!-- Populated by JS -->
+      </div>
+
+      <!-- Charts -->
+      <div class="charts-dashboard">
+        <div class="chart-card">
+          <h3 class="chart-title">資產增長曲線</h3>
+          <div class="chart-container" id="growth-chart"></div>
+        </div>
+        <div class="chart-card">
+          <h3 class="chart-title">回撤走勢圖</h3>
+          <div class="chart-container" id="drawdown-chart"></div>
+        </div>
+        <div class="chart-card">
+          <h3 class="chart-title">危機期間表現比較</h3>
+          <div class="chart-container" id="crisis-chart"></div>
+        </div>
+        <div class="chart-card">
+          <h3 class="chart-title">提領模擬 — 資金存活</h3>
+          <div class="chart-container" id="withdrawal-chart"></div>
+        </div>
+        <div class="chart-card">
+          <h3 class="chart-title">指標雷達圖</h3>
+          <div class="chart-container" id="radar-chart"></div>
+        </div>
+        <div class="chart-card">
+          <h3 class="chart-title">年度報酬熱力圖</h3>
+          <div class="chart-container" id="heatmap-chart"></div>
+        </div>
+      </div>
+
+      <!-- Export -->
+      <div class="step-actions">
+        <button class="btn btn-secondary btn-prev" data-prev="1">← 重新設定</button>
+        <button class="btn btn-primary" id="export-png">匯出 PNG</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p class="disclaimer">⚠️ 本工具僅供參考，不構成投資建議。歷史表現不代表未來結果。投資有風險，請審慎評估。</p>
+    <p class="copyright">RetireViz © 2024 | 資料來源：公開歷史數據</p>
+  </footer>
+
+  <!-- Scripts -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
